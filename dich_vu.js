@@ -98,12 +98,17 @@ const dich_vu = http.createServer((req, res) => {
                     res.end(JSON.stringify(ket_qua));
                 })
             })
-        }  else if (url == "/Lienhe") {
+        } else if (url == "/Lienhe") {
             req.on("end", () => {
-                let kq = JSON.parse(noi_dung_nhan)
-                let from = `${kq.email}`;
+                let kq = {
+                    "noi_dung": true
+                }
+
+                let info = JSON.parse(noi_dung_nhan) //
+                let from = info.email;
                 let to = `tieudan203@gmail.com`;
-                let subject = `${kq.tieude}`;
+
+                let subject = info.tieude; //
                 let body = info.noidung; //
 
                 sendMail.Goi_Thu_Lien_he(from, to, subject, body).then(result => {
