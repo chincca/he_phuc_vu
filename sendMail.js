@@ -12,10 +12,11 @@ class XL_GOI_THU_DIEN_TU {
         });
 
         let mailOptions = {
-            from: `Của hàng PET SHOP <${from}>`,
+            from: `TECHSTORE <${from}>`,
             to: to,
             subject: subject,
             html: body
+            
         };
         return transporter.sendMail(mailOptions)
     }
