@@ -46,6 +46,41 @@ const dich_vu = http.createServer((req, res) => {
                 res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
                 res.end(JSON.stringify(result));
             })
+        } else if (url == "/dsFeatured") {
+            db.getAll("featured").then(result => {
+                res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                res.end(JSON.stringify(result));
+            })
+        } else if (url == "/dsBestseller") {
+            db.getAll("bestseller").then(result => {
+                res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                res.end(JSON.stringify(result));
+            })
+        }  else if (url == "/dsNewArrival") {
+            db.getAll("newarrival").then(result => {
+                res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                res.end(JSON.stringify(result));
+            })
+        }  else if (url == "/dsTablet") {
+            db.getAll("tablet").then(result => {
+                res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                res.end(JSON.stringify(result));
+            })
+        } else if (url == "/dsComputer") {
+            db.getAll("computer").then(result => {
+                res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                res.end(JSON.stringify(result));
+            })
+        } else if (url == "/dsAccessory") {
+            db.getAll("accessory").then(result => {
+                res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                res.end(JSON.stringify(result));
+            })
+        } else if (url == "/dsUser") {
+            db.getAll("user").then(result => {
+                res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                res.end(JSON.stringify(result));
+            })
         } else if (url == "/Cuahang") {
             db.getAll("cuahang").then(result => {
                 res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
@@ -67,7 +102,7 @@ const dich_vu = http.createServer((req, res) => {
             noi_dung_nhan += dulieu
         })
 
-        if (url == "/Dangnhap") {
+     if (url == "/Dangnhap") {
             req.on("end", () => {
                 let ket_qua = {
                     "Noi_dung": true
@@ -98,6 +133,80 @@ const dich_vu = http.createServer((req, res) => {
                     res.end(JSON.stringify(ket_qua));
                 })
             })
+        }else if (url == "/Login") {
+            req.on("end", () => {
+                let ket_qua = {
+                    "Noi_dung": true
+                }
+                let user = JSON.parse(noi_dung_nhan);
+                let dieukien = {
+                    $and: [
+                        { "Email": user.Email},
+                        { "Password": user.Password }
+                    ]
+                }
+                db.getOne("user", dieukien).then(result => {
+                    console.log(result)
+                    ket_qua.Noi_dung = {
+                        "Phone": result.Phone,
+                        "Fullname": result.Fullname,
+                        "Email": result.Email
+
+                    };
+                   res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                   res.end(JSON.stringify(ket_qua));
+               })
+               .catch(err => {
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                })
+            })
+        }else if (url == "/Register") {
+            req.on("end", () => {
+                let user = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.getAll("user",JSON.parse(noi_dung_nhan)).then((result) => {
+                    console.log(result);
+                    ket_qua = JSON.stringify(result);
+                    res.end(JSON.stringify(ket_qua))                 })
+                db.insertOne("user", JSON.parse(noi_dung_nhan)).then((result) => {
+                    console.log(result);
+                    ket_qua = JSON.stringify(result);
+                    res.end(ket_qua)
+                })//.catch(err => console.log(err));
+                .catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua)) 
+                })
+            })
+        }else if (url == "/Avatar") {
+            req.on('end', function () {
+                let img = JSON.parse(noi_dung_nhan);
+                let Ket_qua = { "Noi_dung": true };
+                imgCloud.UPLOAD_CLOUDINARY(img.name,img.src).then(result=>{
+                    console.log(result);
+                    res.end(JSON.stringify(Ket_qua));
+
+                }).catch(err=>{
+                    Ket_qua.Noi_dung=false
+                    res.end(JSON.stringify(Ket_qua))
+                })
+                
+            })
+
+        } else if (url == "/Profile") {
+            req.on("end", () => {
+                let user = JSON.parse(noi_dung_nhan);
+                db.updateOne("user", user.condition, user.update).then((result) => {
+                    ket_qua = JSON.stringify(result);
+                    res.end(ket_qua);
+                }).catch(err => console.log(err));
+
+            })
         } else if (url == "/Lienhe") {
             req.on("end", () => {
                 let kq = {
@@ -120,13 +229,24 @@ const dich_vu = http.createServer((req, res) => {
                     res.end(JSON.stringify(kq))
                 })
             })
-        } else if (url == '/Xacnhan') {
+        }  else if (url == '/Xacnhan') {
             req.on('end', () => {
                 let kq = JSON.parse(noi_dung_nhan)
                 let from = 'tieudan203@gmail.com';
                 let to = kq.khach_hang.Email;
-                let subject = `Xác nhận đơn hàng: ${kq.khach_hang.Ho_ten}`;
-                let body = `Đơn hàng của bạn: <br/> ${kq.don_hang}`;
+                let subject = `Your order information: ${kq.khach_hang.Ho_ten}`;
+                let body = `
+               <h3> Dear mr/ms ${kq.khach_hang.Ho_ten}! <br/></h3>
+                ${kq.don_hang}
+                <br/>
+                <hr>
+                <h3>Thank you for your order, if you have any questions please contact us:</h3>
+                <p>Phone number: 0339894675</p>
+                <p>Email: tieudan203@gmail.com</p>
+                <p>Address: 21-23 Nguyen Tri Phuong, District 1, Ho Chi Minh city</p>
+                <h2>Thank you and see you again!</h2>
+                `;
+               
                 sendMail.Goi_Thu_Lien_he(from, to, subject, body).then(result => {
                     console.log(result);
                     res.end(JSON.stringify(kq))
@@ -142,7 +262,8 @@ const dich_vu = http.createServer((req, res) => {
                 let ket_qua = { "Noi_dung": [] };
                 dsDonhang.forEach(item => {
                     let collectionName="tivi"
-                    collectionName=(item.nhom==2)?"laptop":(item.nhom==3)?"dienthoai":"tivi";
+                    collectionName=(item.nhom==2)?"laptop":(item.nhom==4)?"computer":(item.nhom==5)?"accessory":(item.nhom==6)?"tablet":(item.nhom==7)?"featured":(item.nhom==8)?"newarrival":(item.nhom==9)?"bestseller":(item.nhom==3)?"dienthoai":"tivi";
+                    // collectionName=(item.nhom==1)?"laptop":(item.nhom==2)?"computer":(item.nhom==4)?"accessory":(item.nhom==5)?"tablet":(item.nhom==6)?"featured":(item.nhom==7)?"newarrival":(item.nhom==8)?"bestseller":(item.nhom==9)?"dienthoai":"tivi";
                     let filter = {
                         "Ma_so": item.key
                     }
@@ -176,7 +297,7 @@ const dich_vu = http.createServer((req, res) => {
                 })
 
             })
-        } else if (url == "/ThemDienthoai") {
+        }  else if (url == "/ThemDienthoai") {
             req.on('end', function () {
                 let mobile = JSON.parse(noi_dung_nhan);
                 let ket_qua = { "Noi_dung": true };
@@ -191,7 +312,7 @@ const dich_vu = http.createServer((req, res) => {
                     res.end(JSON.stringify(ket_qua));
                 })
             })
-        }else if (url == "/SuaDienthoai") {
+        } else if (url == "/SuaDienthoai") {
             req.on('end', function () {
                 let mobile = JSON.parse(noi_dung_nhan);
                 let ket_qua = { "Noi_dung": true };
@@ -365,6 +486,384 @@ else if (url == "/XoaLaptop") {
             })
 
         } else if (url == "/ImagesLaptop") {
+            req.on('end', function () {
+                let img = JSON.parse(noi_dung_nhan);
+                let Ket_qua = { "Noi_dung": true };
+                imgCloud.UPLOAD_CLOUDINARY(img.name,img.src).then(result=>{
+                    console.log(result);
+                    res.end(JSON.stringify(Ket_qua));
+
+                }).catch(err=>{
+                    Ket_qua.Noi_dung=false
+                    res.end(JSON.stringify(Ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ThemTablet") {
+            req.on('end', function () {
+                let tablet = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.insertOne("tablet", tablet).then(result => {
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err => {
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                })
+            })
+        }else if (url == "/SuaTablet") {
+            req.on('end', function () {
+                let tablet = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.updateOne("tablet",tablet.condition,tablet.update).then(result=>{
+                   // console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua)) 
+                })
+            })
+        }
+else if (url == "/XoaTablet") {
+            req.on('end', function () {
+                let tablet = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.deleteOne("tablet",tablet).then(result=>{
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ImagesTablet") {
+            req.on('end', function () {
+                let img = JSON.parse(noi_dung_nhan);
+                let Ket_qua = { "Noi_dung": true };
+                imgCloud.UPLOAD_CLOUDINARY(img.name,img.src).then(result=>{
+                    console.log(result);
+                    res.end(JSON.stringify(Ket_qua));
+
+                }).catch(err=>{
+                    Ket_qua.Noi_dung=false
+                    res.end(JSON.stringify(Ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ThemComputer") {
+            req.on('end', function () {
+                let computer = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.insertOne("computer", computer).then(result => {
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err => {
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                })
+            })
+        }else if (url == "/SuaComputer") {
+            req.on('end', function () {
+                let computer = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.updateOne("computer",computer.condition,computer.update).then(result=>{
+                   // console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua)) 
+                })
+            })
+        }
+else if (url == "/XoaComputer") {
+            req.on('end', function () {
+                let computer = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.deleteOne("computer",computer).then(result=>{
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ImagesComputer") {
+            req.on('end', function () {
+                let img = JSON.parse(noi_dung_nhan);
+                let Ket_qua = { "Noi_dung": true };
+                imgCloud.UPLOAD_CLOUDINARY(img.name,img.src).then(result=>{
+                    console.log(result);
+                    res.end(JSON.stringify(Ket_qua));
+
+                }).catch(err=>{
+                    Ket_qua.Noi_dung=false
+                    res.end(JSON.stringify(Ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ThemAccessory") {
+            req.on('end', function () {
+                let accessory = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.insertOne("accessory", accessory).then(result => {
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err => {
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                })
+            })
+        }else if (url == "/SuaAccessory") {
+            req.on('end', function () {
+                let accessory = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.updateOne("accessory",accessory.condition,accessory.update).then(result=>{
+                   // console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua)) 
+                })
+            })
+        }
+else if (url == "/XoaAccessory") {
+            req.on('end', function () {
+                let accessory = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.deleteOne("accessory",accessory).then(result=>{
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ImagesAccessory") {
+            req.on('end', function () {
+                let img = JSON.parse(noi_dung_nhan);
+                let Ket_qua = { "Noi_dung": true };
+                imgCloud.UPLOAD_CLOUDINARY(img.name,img.src).then(result=>{
+                    console.log(result);
+                    res.end(JSON.stringify(Ket_qua));
+
+                }).catch(err=>{
+                    Ket_qua.Noi_dung=false
+                    res.end(JSON.stringify(Ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ThemBestseller") {
+            req.on('end', function () {
+                let bestseller = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.insertOne("bestseller", bestseller).then(result => {
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err => {
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                })
+            })
+        }else if (url == "/SuaBestseller") {
+            req.on('end', function () {
+                let bestseller = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.updateOne("bestseller",bestseller.condition,bestseller.update).then(result=>{
+                   // console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua)) 
+                })
+            })
+        }
+else if (url == "/XoaBestseller") {
+            req.on('end', function () {
+                let bestseller = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.deleteOne("bestseller",bestseller).then(result=>{
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ImagesBestseller") {
+            req.on('end', function () {
+                let img = JSON.parse(noi_dung_nhan);
+                let Ket_qua = { "Noi_dung": true };
+                imgCloud.UPLOAD_CLOUDINARY(img.name,img.src).then(result=>{
+                    console.log(result);
+                    res.end(JSON.stringify(Ket_qua));
+
+                }).catch(err=>{
+                    Ket_qua.Noi_dung=false
+                    res.end(JSON.stringify(Ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ThemFeatured") {
+            req.on('end', function () {
+                let featured = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.insertOne("featured", featured).then(result => {
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err => {
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                })
+            })
+        }else if (url == "/SuaFeatured") {
+            req.on('end', function () {
+                let featured = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.updateOne("featured",featured.condition,featured.update).then(result=>{
+                   // console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua)) 
+                })
+            })
+        }
+else if (url == "/XoaFeatured") {
+            req.on('end', function () {
+                let featured = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.deleteOne("featured",featured).then(result=>{
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ImagesFeatured") {
+            req.on('end', function () {
+                let img = JSON.parse(noi_dung_nhan);
+                let Ket_qua = { "Noi_dung": true };
+                imgCloud.UPLOAD_CLOUDINARY(img.name,img.src).then(result=>{
+                    console.log(result);
+                    res.end(JSON.stringify(Ket_qua));
+
+                }).catch(err=>{
+                    Ket_qua.Noi_dung=false
+                    res.end(JSON.stringify(Ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ThemNewarrival") {
+            req.on('end', function () {
+                let newarrival = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.insertOne("newarrival", newarrival).then(result => {
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err => {
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                })
+            })
+        }else if (url == "/SuaNewarrival") {
+            req.on('end', function () {
+                let newarrival = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.updateOne("newarrival",newarrival.condition,newarrival.update).then(result=>{
+                   // console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua)) 
+                })
+            })
+        }
+else if (url == "/XoaNewarrival") {
+            req.on('end', function () {
+                let newarrival = JSON.parse(noi_dung_nhan);
+                let ket_qua = { "Noi_dung": true };
+                db.deleteOne("newarrival",newarrival).then(result=>{
+                    console.log(result);
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua));
+                }).catch(err=>{
+                    console.log(err);
+                    ket_qua.Noi_dung = false;
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" });
+                    res.end(JSON.stringify(ket_qua))
+                })
+                
+            })
+
+        }else if (url == "/ImagesNewarrival") {
             req.on('end', function () {
                 let img = JSON.parse(noi_dung_nhan);
                 let Ket_qua = { "Noi_dung": true };
